@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1C1C1E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="工具箱">
+  <title>設計師的工具箱</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    [hidden]{display:none!important;}
+    button,.cat-btn,.radius-pill,.chip{min-height:44px;}
+    .chip{display:inline-flex;align-items:center;text-decoration:none;}
+    .install-help{margin:14px 20px;color:var(--muted);font-size:13px;line-height:1.8;}
+    .install-help summary{cursor:pointer;color:var(--copper-light);min-height:44px;}
+    :root{
+      --ink:#1C1C1E;--copper:#B8894A;--copper-light:#D4A96A;--copper-dim:#7A5C30;
+      --muted:#8A8580;--success:#2E7D5E;--danger:#C0392B;
+      --card-bg:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.09);
+    }
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:'Noto Sans TC',sans-serif;background:var(--ink);color:#fff;display:flex;flex-direction:column;height:100%;height:-webkit-fill-available;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(184,137,74,0.055) 1px,transparent 1px),linear-gradient(90deg,rgba(184,137,74,0.055) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0;}
+    #app{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;z-index:1;padding-bottom:16px;}
+
+    .hdr{padding:max(20px, env(safe-area-inset-top)) 20px 0;display:flex;justify-content:space-between;align-items:flex-start;}
+    .hdr-label{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--copper);text-transform:uppercase;margin-bottom:4px;}
+    .hdr-title{font-size:22px;font-weight:900;letter-spacing:-0.5px;line-height:1.1;}
+    .hdr-title span{color:var(--copper);}
+    .status-dot{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:4px;}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--danger);}
+    .dot.on{background:#4CAF50;box-shadow:0 0 6px #4CAF5066;}
+
+    .loc-bar{margin:14px 20px 0;background:var(--card-bg);border:1px solid rgba(184,137,74,0.25);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+    .loc-bar i{color:var(--copper);font-size:20px;flex-shrink:0;}
+    .loc-text{flex:1;min-width:0;}
+    .loc-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .loc-sub{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .loc-refresh{font-size:12px;color:var(--copper);font-weight:700;flex-shrink:0;}
+
+    .cat-row{display:flex;gap:8px;padding:14px 20px 0;}
+    .cat-btn{flex:1;background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;transition:all 0.15s;-webkit-user-select:none;}
+    .cat-btn.active{background:rgba(184,137,74,0.15);border-color:var(--copper);}
+    .cat-btn i{font-size:20px;color:var(--muted);display:block;margin-bottom:5px;}
+    .cat-btn.active i{color:var(--copper);}
+    .cat-btn span{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:0.3px;}
+    .cat-btn.active span{color:var(--copper-light);}
+
+    .radius-row{display:flex;align-items:center;gap:10px;padding:14px 20px 0;}
+    .radius-label{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;}
+    .radius-pills{display:flex;gap:6px;flex:1;}
+    .radius-pill{flex:1;background:var(--card-bg);border:1px solid var(--card-border);border-radius:7px;padding:6px 4px;text-align:center;font-size:11px;color:var(--muted);cursor:pointer;font-weight:600;transition:all 0.15s;-webkit-user-select:none;}
+    .radius-pill.active{background:rgba(184,137,74,0.15);border-color:var(--copper);color:var(--copper-light);}
+
+    .toolbar{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 6px;}
+    .res-title{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+    .res-count{font-size:11px;color:var(--copper);margin-top:2px;}
+    .add-btn{display:flex;align-items:center;gap:5px;background:rgba(184,137,74,0.12);border:1px solid rgba(184,137,74,0.35);border-radius:7px;padding:7px 12px;color:var(--copper-light);font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;-webkit-user-select:none;}
+    .add-btn i{font-size:14px;}
+
+    .cards{padding:0 20px;display:flex;flex-direction:column;gap:10px;}
+    .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:14px;display:flex;gap:11px;cursor:pointer;position:relative;overflow:hidden;transition:border-color 0.15s;}
+    .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--copper);border-radius:3px 0 0 3px;opacity:0;transition:opacity 0.15s;}
+    .card:active{opacity:0.85;}
+    .card.custom-card::before{background:#6FCF97;opacity:0.5;}
+    .card-rank{font-size:11px;font-weight:700;color:var(--copper-dim);min-width:20px;padding-top:2px;flex-shrink:0;}
+    .card-body{flex:1;min-width:0;}
+    .card-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .card-addr{font-size:11px;color:var(--muted);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .card-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+    .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:0.3px;white-space:nowrap;}
+    .badge-dist{background:rgba(184,137,74,0.15);color:var(--copper-light);}
+    .badge-open{background:rgba(46,125,94,0.2);color:#6FCF97;}
+    .badge-closed{background:rgba(192,57,43,0.15);color:#E07060;}
+    .badge-custom{background:rgba(111,207,151,0.12);color:#6FCF97;}
+    .badge-tag{background:rgba(255,255,255,0.06);color:var(--muted);}
+    .badge-type{background:rgba(255,255,255,0.05);color:var(--muted);}
+    .stars{font-size:11px;color:var(--copper);}
+    .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+    .nav-btn{background:rgba(184,137,74,0.15);border:1px solid rgba(184,137,74,0.3);border-radius:7px;padding:6px 9px;color:var(--copper);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;}
+    .del-btn{background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.2);border-radius:7px;padding:5px 8px;color:#E07060;font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+    .card-note{font-size:10px;color:var(--muted);margin-top:5px;font-style:italic;line-height:1.4;}
+
+    .loading{padding:44px 20px;text-align:center;}
+    .loading-ring{width:38px;height:38px;border:2px solid rgba(184,137,74,0.2);border-top-color:var(--copper);border-radius:50%;margin:0 auto 14px;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading p{font-size:12px;color:var(--muted);}
+    .empty{padding:44px 20px;text-align:center;}
+    .empty i{font-size:36px;color:rgba(184,137,74,0.22);display:block;margin-bottom:10px;}
+    .empty p{font-size:12px;color:var(--muted);line-height:1.7;}
+    .empty-hint{font-size:11px;color:var(--copper-dim);margin-top:8px;}
+    .err-box{margin:0 20px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.25);border-radius:10px;padding:14px;font-size:11px;color:#E07060;line-height:1.6;}
+
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:none;align-items:flex-end;justify-content:center;z-index:100;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:#242422;border:1px solid rgba(184,137,74,0.3);border-radius:20px 20px 0 0;padding:0 20px max(20px,env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .modal-handle{width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:12px auto 16px;}
+    .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .modal-title{font-size:16px;font-weight:700;}
+    .modal-close{background:rgba(255,255,255,0.08);border:none;color:var(--muted);font-size:16px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+    .field{margin-bottom:16px;}
+    .field label{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px;}
+    .field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;font-family:'Noto Sans TC',sans-serif;outline:none;-webkit-appearance:none;}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--copper);}
+    .field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+    .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8580' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+    .field select option{background:#242422;}
+    .field textarea{resize:none;height:72px;line-height:1.5;}
+    .field-hint{font-size:10px;color:var(--copper-dim);margin-top:6px;line-height:1.4;}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;}
+    .chip{padding:5px 12px;border-radius:20px;font-size:11px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;transition:all 0.12s;font-family:'Noto Sans TC',sans-serif;-webkit-user-select:none;}
+    .chip.sel{border-color:var(--copper);background:rgba(184,137,74,0.15);color:var(--copper-light);}
+    .modal-footer{display:flex;gap:10px;margin-top:6px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.07);}
+    .btn-cancel{flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+    .btn-save{flex:2;background:var(--copper);border:none;border-radius:9px;padding:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+
+    .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(80px);background:#333;border:1px solid rgba(184,137,74,0.4);border-radius:24px;padding:10px 20px;font-size:13px;color:#fff;font-weight:500;white-space:nowrap;z-index:200;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;max-width:90%;text-align:center;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .src-note{margin:10px 20px 0;font-size:10px;color:rgba(184,137,74,0.4);text-align:center;letter-spacing:0.3px;line-height:1.5;}
+    .mode-note,.manual-location,.map-actions{margin:14px 20px 0;font-size:13px;line-height:1.6;color:var(--muted);}
+    .mode-note{padding:12px;border:1px solid var(--card-border);border-radius:10px;color:var(--copper-light);}
+    .manual-location label{display:block;margin-bottom:6px;}
+    .location-row{display:flex;gap:8px;}
+    .location-row input{flex:1;min-width:0;background:var(--card-bg);border:1px solid var(--card-border);border-radius:7px;color:white;padding:10px;font:inherit;}
+    .map-search{display:block;border:1px solid var(--copper);background:rgba(184,137,74,.15);border-radius:10px;padding:13px;color:var(--copper-light);text-align:center;text-decoration:none;font-weight:700;font-size:15px;}
+    .map-search[aria-disabled="true"]{opacity:.6;}
+    .map-actions p{font-size:12px;margin-top:7px;}
+    .cat-btn span,.radius-label,.radius-pill,.add-btn,.nav-btn,.del-btn{font-size:13px;}
+    .field label,.field-hint{font-size:12px;}
+    .loc-sub{white-space:normal;}
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="hdr">
+    <div>
+      <div class="hdr-label">設計師的工具箱</div>
+      <div class="hdr-title">案場<span>探物</span></div>
+      <div class="status-dot">
+        <span class="dot" id="gps-dot"></span>
+        <span id="gps-label">尚未定位</span>
+      </div>
+    </div>
+    <i class="ti ti-compass" style="font-size:32px;color:rgba(184,137,74,0.28);margin-top:6px;"></i>
+  </div>
+
+  <div class="mode-note">手機隨行版 · 免金鑰定位與附近商家搜尋</div>
+  <details class="install-help"><summary>安裝到手機主畫面</summary><p>iPhone：用 Safari 開啟本頁，按「分享」→「加入主畫面」。Android：用 Chrome 開啟，按選單 →「安裝應用程式」或「加到主畫面」。</p><p>首次使用請允許定位，並在手機設定允許精確位置。商家搜尋與導航需要網路；離線可查看已儲存的自訂店家。店家資料只存在這台裝置，換手機或清除網站資料前請先保留紀錄。</p></details>
+  <div class="loc-bar" onclick="getLocation()">
+    <i class="ti ti-map-pin"></i>
+    <div class="loc-text">
+      <div class="loc-name" id="loc-name">點此取得目前位置</div>
+      <div class="loc-sub" id="loc-sub">按一下開始定位</div>
+    </div>
+    <span class="loc-refresh" id="loc-refresh">定位</span>
+  </div>
+
+  <div class="manual-location">
+    <label for="location-input">手動指定案場（定位失敗也能使用）</label>
+    <div class="location-row"><input id="location-input" placeholder="地址、地標或緯度,經度" maxlength="200"><button class="add-btn" onclick="setManualLocation()">套用</button></div>
+    <div class="field-hint">地址可直接用於地圖搜尋；經緯度還能計算自訂店家距離。</div>
+  </div>
+  <div class="cat-row">
+    <div class="cat-btn active" id="cat-hardware" onclick="setCategory('hardware',this)">
+      <i class="ti ti-tools"></i><span>五金材料</span>
+    </div>
+    <div class="cat-btn" id="cat-lodging" onclick="setCategory('lodging',this)">
+      <i class="ti ti-bed"></i><span>住宿</span>
+    </div>
+    <div class="cat-btn" id="cat-restaurant" onclick="setCategory('restaurant',this)">
+      <i class="ti ti-bowl"></i><span>吃飯</span>
+    </div>
+  </div>
+
+  <div class="map-actions">
+    <a id="check-location" class="add-btn" style="margin-bottom:10px;width:fit-content;text-decoration:none" target="_blank" rel="noopener noreferrer" hidden>在地圖確認選定位置</a>
+    <a id="nearby-link" class="map-search" target="_blank" rel="noopener noreferrer">在 Google 地圖搜尋五金材料行</a>
+    <p>也可分項查找，減少漏找：</p><div id="search-terms" class="chips"></div>
+    <p>點擊才會將選定位置交給 Google 地圖。商家是否完整取決於地圖收錄，無法保證零遺漏；搜尋範圍由 Google 決定。</p>
+    <p>電腦定位可能較粗略；系統會比較最多三次讀值，估計誤差超過 100 公尺時不採用。仍請確認案場地址與入口。</p>
+  </div>
+  <div class="radius-row">
+    <span class="radius-label">自訂店家範圍</span>
+    <div class="radius-pills">
+      <div class="radius-pill" onclick="setRadius(1000,this)">1km</div>
+      <div class="radius-pill active" onclick="setRadius(3000,this)">3km</div>
+      <div class="radius-pill" onclick="setRadius(5000,this)">5km</div>
+      <div class="radius-pill" onclick="setRadius(10000,this)">10km</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div>
+      <div class="res-title" id="res-label">自訂五金材料行</div>
+      <div class="res-count" id="res-count"></div>
+    </div>
+    <button class="add-btn" onclick="openModal()">
+      <i class="ti ti-plus"></i>新增店家
+    </button>
+  </div>
+
+  <div class="cards" id="cards-container">
+    <div class="empty">
+      <i class="ti ti-map-search"></i>
+      <p>按定位或輸入案場地址，再開啟地圖搜尋<br>也可先新增自己的常用店家</p>
+    </div>
+  </div>
+
+  <div class="src-note" id="src-note"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="overlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <span class="modal-title">新增店家</span>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label>店家名稱 *</label>
+      <input type="text" id="m-name" placeholder="例：大豐五金行" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>地址</label>
+      <input type="text" id="m-addr" placeholder="例：彰化市中山路二段 88 號" autocomplete="off">
+      <div class="field-hint">地址用於導航；不會自動查詢座標，也不需要金鑰。</div>
+    </div>
+    <div class="field">
+      <label for="m-coords">店家經緯度（選填）</label>
+      <input id="m-coords" placeholder="緯度,經度，例如 25.03,121.56">
+      <button type="button" class="add-btn" style="margin-top:8px" onclick="useCurrentForStore()">店家就在目前定位處</button>
+      <div class="field-hint">只有人在店家現場才使用此按鈕。未填座標的店家保留顯示，距離標示未知。</div>
+    </div>
+    <div class="field">
+      <label>電話</label>
+      <input type="tel" id="m-phone" placeholder="04-2222-3333">
+    </div>
+    <div class="field">
+      <label>分類</label>
+      <select id="m-cat">
+        <option value="hardware">🔧 五金材料</option>
+        <option value="lodging">🏨 住宿</option>
+        <option value="restaurant">🍜 吃飯</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>快速標籤</label>
+      <div class="chips">
+        <span class="chip" onclick="toggleChip(this)">常去</span>
+        <span class="chip" onclick="toggleChip(this)">便宜</span>
+        <span class="chip" onclick="toggleChip(this)">備料齊全</span>
+        <span class="chip" onclick="toggleChip(this)">需預約</span>
+        <span class="chip" onclick="toggleChip(this)">可刷卡</span>
+        <span class="chip" onclick="toggleChip(this)">有停車場</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>備註</label>
+      <textarea id="m-note" placeholder="例：三樓有鋁框料、老闆 0912-xxx-xxx..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-save" onclick="saveCustom()">儲存店家</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+const CATS = {
+  hardware: {label:'五金材料行',terms:['五金行','建材行','水電材料','木材行','油漆行','螺絲行','工具行']},
+  lodging: {label:'住宿',terms:['飯店','旅館','民宿','汽車旅館','青年旅館']},
+  restaurant: {label:'餐廳小吃',terms:['餐廳','小吃','便當','早餐','麵店','咖啡廳','宵夜']},
+};
+let currentCat = 'hardware', currentRadius = 3000;
+let currentLat = null, currentLng = null, manualPlace = '';
+let locationSource = '', locating = false, toastTimer = null;
+let locationAccuracy = null, locationTime = null;
+let customStores = [], storageReadable = true, renderedStores = [];
+try {
+  const stored = JSON.parse(localStorage.getItem('custom_stores') || '[]');
+  if (!Array.isArray(stored) || stored.some(s => !s || typeof s !== 'object' || typeof s.name !== 'string' || !CATS[s.cat])) throw new Error('invalid stores');
+  customStores = stored;
+} catch (_) { storageReadable = false; }
+
+function hasCoords(lat, lng) {
+  return typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+}
+function parseCoords(text) {
+  const parts = text.trim().split(/[,，]/);
+  if (parts.length !== 2 || parts.some(x => !x.trim())) return null;
+  const [lat,lng] = parts.map(Number);
+  return hasCoords(lat,lng) ? {lat,lng} : null;
+}
+function updateGpsDot() {
+  document.getElementById('gps-dot').className = 'dot' + (hasCoords(currentLat,currentLng) || manualPlace ? ' on' : '');
+  document.getElementById('gps-label').textContent = locationSource || '尚未定位';
+}
+function getLocation() {
+  if (locating) return;
+  if (!navigator.geolocation || !window.isSecureContext) {
+    showToast('此環境無法定位，請輸入案場地址；定位需 HTTPS 或 localhost');
+    return;
+  }
+  locating = true;
+  document.getElementById('loc-refresh').textContent = '定位中…';
+  document.getElementById('loc-sub').textContent = '請允許定位；正在取得最新位置，最多測量三次';
+  let attempts = 0, best = null;
+  function finish() {
+    locating = false;
+    if (!best || best.coords.accuracy > 100) {
+      document.getElementById('loc-sub').textContent = best ? '定位誤差約 '+Math.ceil(best.coords.accuracy)+' 公尺，精度不足，未採用。請到戶外重試或輸入案場地址。' : '無法取得可信的位置，請改輸入案場地址。';
+      if (locationSource) document.getElementById('loc-sub').textContent += ' 保留原選定位置。';
+      document.getElementById('loc-refresh').textContent = '重試';
+      updateGpsDot(); search(); return;
+    }
+    currentLat = best.coords.latitude; currentLng = best.coords.longitude;
+    locationAccuracy = best.coords.accuracy; locationTime = best.timestamp || Date.now();
+    manualPlace = ''; locationSource = '裝置已定位';
+    document.getElementById('location-input').value = '';
+    document.getElementById('loc-name').textContent = currentLat.toFixed(6) + ', ' + currentLng.toFixed(6);
+    document.getElementById('loc-sub').textContent = '估計誤差半徑約 '+Math.ceil(locationAccuracy)+' 公尺 · '+new Date(locationTime).toLocaleTimeString('zh-TW')+' · 請在地圖確認案場入口';
+    document.getElementById('loc-refresh').textContent = '重新定位';
+    updateGpsDot(); search();
+  }
+  function sample() {
+    attempts++;
+    navigator.geolocation.getCurrentPosition(pos => {
+      const c = pos.coords;
+      const fresh = pos.timestamp == null || Math.abs(Date.now()-pos.timestamp) <= 30000;
+      if (fresh && hasCoords(c.latitude,c.longitude) && Number.isFinite(c.accuracy) && c.accuracy>0 && (!best || c.accuracy<best.coords.accuracy)) best=pos;
+      if (best && best.coords.accuracy<=50 || attempts>=3) finish();
+      else {document.getElementById('loc-sub').textContent='正在提高定位精度（'+attempts+'/3）…';sample();}
+    }, err => {
+      if (err.code===1) {locationFailure(err);return;}
+      if (attempts<3) sample(); else if (best) finish(); else locationFailure(err);
+    }, {enableHighAccuracy:true, timeout:10000, maximumAge:0});
+  }
+  sample();
+}
+function locationFailure(err) {
+  locating = false;
+  const hints = {1:'定位權限未允許，可改填案場地址。',2:'裝置目前無法取得位置，可改填案場地址。',3:'定位逾時，請重試或輸入案場地址。'};
+  document.getElementById('loc-sub').textContent = (hints[err.code] || '定位失敗，可輸入案場地址。') + (locationSource ? ' 保留原選定位置。' : '');
+  document.getElementById('loc-refresh').textContent = '重試';
+  updateGpsDot(); search();
+}
+function setManualLocation() {
+  if (locating) { showToast('請等本次定位完成再套用地址'); return; }
+  const value = document.getElementById('location-input').value.trim();
+  if (!value) { showToast('請輸入案場地址、地標或經緯度'); return; }
+  const coords = parseCoords(value);
+  if (!coords && /^[\d\s.,，+\-]+$/.test(value)) { showToast('經緯度格式不正確，請輸入緯度,經度'); return; }
+  currentLat = coords ? coords.lat : null; currentLng = coords ? coords.lng : null;
+  manualPlace = coords ? '' : value; locationSource = '手動指定案場';
+  locationAccuracy = null; locationTime = null;
+  document.getElementById('loc-name').textContent = value;
+  document.getElementById('loc-sub').textContent = coords ? '以指定座標搜尋與計算直線距離' : '以此地址搜尋；未查詢座標，自訂店家距離未知';
+  document.getElementById('loc-refresh').textContent = '裝置定位';
+  updateGpsDot(); search();
+}
+function nearbyUrl(term = CATS[currentCat].label) {
+  const location = hasCoords(currentLat,currentLng) ? currentLat + ',' + currentLng : manualPlace;
+  if (!location) return '';
+  const url = new URL('https://www.google.com/maps/search/');
+  url.searchParams.set('api','1');
+  url.searchParams.set('query', term + ' near ' + location);
+  return url.href;
+}
+function setCategory(cat,el) {
+  if (!CATS[cat]) return;
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); search();
+}
+function setRadius(radius,el) {
+  currentRadius = radius;
+  document.querySelectorAll('.radius-pill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); search();
+}
+function calcDist(a,b,c,d) {
+  if (!hasCoords(a,b) || !hasCoords(c,d)) return null;
+  const rad = Math.PI/180;
+  const x = Math.sin((c-a)*rad/2)**2 + Math.cos(a*rad)*Math.cos(c*rad)*Math.sin((d-b)*rad/2)**2;
+  return Math.round(6371000*2*Math.asin(Math.sqrt(Math.min(1,x))));
+}
+function distLabel(m) { return m === null ? '距離未知' : m >= 1000 ? (m/1000).toFixed(1)+' 公里' : m+' 公尺'; }
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function search() {
+  const link = document.getElementById('nearby-link'), url = nearbyUrl();
+  link.textContent = '在 Google 地圖搜尋' + CATS[currentCat].label;
+  link.setAttribute('aria-disabled', url ? 'false' : 'true');
+  if (url) link.setAttribute('href',url); else link.removeAttribute('href');
+  const extra = document.getElementById('search-terms');
+  extra.innerHTML = CATS[currentCat].terms.map(term => {
+    const href=nearbyUrl(term);
+    return '<a class="chip" target="_blank" rel="noopener noreferrer" '+(href?'href="'+esc(href)+'"':'aria-disabled="true"')+'>'+esc(term)+'</a>';
+  }).join('');
+  const check = document.getElementById('check-location');
+  const pin = hasCoords(currentLat,currentLng) ? currentLat+','+currentLng : manualPlace;
+  if(pin) { const u=new URL('https://www.google.com/maps/search/');u.searchParams.set('api','1');u.searchParams.set('query',pin);check.href=u.href;check.hidden=false; } else {check.removeAttribute('href');check.hidden=true;}
+  document.getElementById('res-label').textContent = '自訂' + CATS[currentCat].label;
+  const all = customStores.filter(s=>s.cat===currentCat).map(s=>({...s, dist:calcDist(currentLat,currentLng,s.lat,s.lng)}));
+  renderedStores = all.filter(s=>s.dist===null || s.dist<=currentRadius).sort((a,b)=>(a.dist??Infinity)-(b.dist??Infinity));
+  document.getElementById('res-count').textContent = renderedStores.length + ' 間自訂店家' + (all.length>renderedStores.length ? ' · 範圍外 '+(all.length-renderedStores.length)+' 間' : '');
+  document.getElementById('cards-container').innerHTML = renderedStores.length ? renderedStores.map(cardHtml).join('') : '<div class="empty"><i class="ti ti-building-store"></i><p>此分類或範圍尚無自訂店家<br>可新增店家，或使用上方按鈕到地圖搜尋</p></div>';
+  document.getElementById('src-note').textContent = storageReadable ? '自訂資料僅保存在此瀏覽器 · 範圍依直線距離篩選；未知距離保留顯示' : '原有店家資料無法讀取；為保護資料，暫停儲存與刪除，請先備份瀏覽器資料。';
+}
+function cardHtml(p,i) {
+  const tags = Array.isArray(p.tags) ? p.tags : [];
+  return `<div class="card custom-card" onclick="navigateStore(${i})">
+    <div class="card-rank">${String(i+1).padStart(2,'0')}</div>
+    <div class="card-body"><div class="card-name">${esc(p.name)}</div>
+    <div class="card-addr">${esc(p.address||p.addr||'')}</div>
+    <div class="card-meta"><span class="badge badge-dist">${distLabel(p.dist)}</span><span class="badge badge-custom">自訂</span>${tags.map(t=>`<span class="badge badge-tag">${esc(t)}</span>`).join('')}</div>
+    ${p.note?`<div class="card-note">${esc(p.note)}</div>`:''}${p.phone?`<div class="card-note">${esc(p.phone)}</div>`:''}</div>
+    <div class="card-right"><button class="nav-btn" onclick="event.stopPropagation();navigateStore(${i})">導航</button><button class="del-btn" onclick="event.stopPropagation();deleteStoreAt(${i})">刪除</button></div></div>`;
+}
+function navigateStore(i) {
+  const p = renderedStores[i]; if (!p) return;
+  const destination = hasCoords(p.lat,p.lng) ? p.lat+','+p.lng : [p.name,p.address||p.addr].filter(Boolean).join(' ');
+  const url = new URL('https://www.google.com/maps/dir/');
+  url.searchParams.set('api','1'); url.searchParams.set('destination',destination);
+  window.open(url.href,'_blank','noopener,noreferrer');
+}
+function openModal() {
+  document.getElementById('m-cat').value=currentCat;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  ['m-name','m-addr','m-coords','m-phone','m-note'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+}
+function overlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+function toggleChip(el) { el.classList.toggle('sel'); }
+function useCurrentForStore() {
+  if (locationSource !== '裝置已定位' || !hasCoords(currentLat,currentLng)) { showToast('請先使用裝置定位，並確認人就在店家現場'); return; }
+  document.getElementById('m-coords').value=currentLat+','+currentLng;
+}
+function persistStores(next) {
+  if (!storageReadable) { showToast('原有資料讀取異常，已停止寫入以保護資料'); return false; }
+  try { localStorage.setItem('custom_stores',JSON.stringify(next)); customStores=next; return true; }
+  catch (_) { showToast('儲存失敗：請檢查瀏覽器儲存空間或隱私設定'); return false; }
+}
+function saveCustom() {
+  const name=document.getElementById('m-name').value.trim();
+  if (!name) { document.getElementById('m-name').focus(); return; }
+  const text=document.getElementById('m-coords').value.trim(), coords=parseCoords(text);
+  if (text && !coords) { showToast('店家座標格式不正確，請輸入緯度,經度'); return; }
+  const entry={id:'c'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,
+    address:document.getElementById('m-addr').value.trim(),phone:document.getElementById('m-phone').value.trim(),
+    cat:document.getElementById('m-cat').value,note:document.getElementById('m-note').value.trim(),
+    tags:[...document.querySelectorAll('.chip.sel')].map(c=>c.textContent),lat:coords?coords.lat:null,lng:coords?coords.lng:null};
+  if (persistStores([...customStores,entry])) {closeModal();search();showToast('店家已新增');}
+}
+function deleteStoreAt(i) {
+  const p=renderedStores[i]; if(!p || !confirm('刪除自訂店家「'+p.name+'」？')) return;
+  if(persistStores(customStores.filter(s=>s.id!==p.id))) {search();showToast('已刪除');}
+}
+function showToast(msg) {
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
+}
+document.getElementById('nearby-link').addEventListener('click',event=>{
+  if(!nearbyUrl()) {event.preventDefault();showToast('請先定位或輸入案場地址');}
+});
+document.getElementById('location-input').addEventListener('keydown',event=>{if(event.key==='Enter')setManualLocation();});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+updateGpsDot(); search();
+
+</script>
+</body>
+</html>
