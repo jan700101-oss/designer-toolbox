@@ -1,5 +1,5 @@
 const PREFIX = 'designer-toolbox-' + new URL(self.registration.scope).pathname.replace(/[^a-z0-9]/gi, '-') + '-';
-const CACHE = PREFIX + 'v5';
+const CACHE = PREFIX + 'v6';
 const ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

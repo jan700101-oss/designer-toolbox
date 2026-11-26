@@ -160,16 +160,17 @@
     <i class="ti ti-map-pin"></i>
     <div class="loc-text">
       <div class="loc-name" id="loc-name">點此取得目前位置</div>
-      <div class="loc-sub" id="loc-sub">按一下開始定位</div>
+      <div class="loc-sub" id="loc-sub">自動取得裝置位置，不必輸入地址</div>
     </div>
     <span class="loc-refresh" id="loc-refresh">定位</span>
   </div>
 
-  <div class="manual-location">
-    <label for="location-input">手動指定案場（定位失敗也能使用）</label>
+  <details class="manual-location">
+    <summary style="min-height:44px;cursor:pointer">改查其他案場地址（選填）</summary>
+    <label for="location-input">手動指定其他案場</label>
     <div class="location-row"><input id="location-input" placeholder="地址、地標或緯度,經度" maxlength="200"><button class="add-btn" onclick="setManualLocation()">套用</button></div>
     <div class="field-hint">地址可直接用於地圖搜尋；經緯度還能計算自訂店家距離。</div>
-  </div>
+  </details>
   <div class="cat-row">
     <div class="cat-btn active" id="cat-hardware" onclick="setCategory('hardware',this)">
       <i class="ti ti-tools"></i><span>五金材料</span>
@@ -187,7 +188,7 @@
     <a id="nearby-link" class="map-search" target="_blank" rel="noopener noreferrer">在 Google 地圖搜尋五金材料行</a>
     <p>也可分項查找，減少漏找：</p><div id="search-terms" class="chips"></div>
     <p>點擊才會將選定位置交給 Google 地圖。商家是否完整取決於地圖收錄，無法保證零遺漏；搜尋範圍由 Google 決定。</p>
-    <p>電腦定位可能較粗略；系統會比較最多三次讀值，估計誤差超過 100 公尺時不採用。仍請確認案場地址與入口。</p>
+    <p>不必填地址。未取得位置時，可直接開啟 Google 地圖，允許地圖使用目前位置；也可按地圖的「目前位置」按鈕。電腦定位可能較粗略，手機實際精度需現場確認。</p>
   </div>
   <div class="radius-row">
     <span class="radius-label">自訂店家範圍</span>
@@ -311,7 +312,7 @@ function updateGpsDot() {
 function getLocation() {
   if (locating) return;
   if (!navigator.geolocation || !window.isSecureContext) {
-    showToast('此環境無法定位，請輸入案場地址；定位需 HTTPS 或 localhost');
+    showToast('此環境無法定位，可直接用下方 Google 地圖找附近店家');
     return;
   }
   locating = true;
@@ -321,7 +322,7 @@ function getLocation() {
   function finish() {
     locating = false;
     if (!best || best.coords.accuracy > 100) {
-      document.getElementById('loc-sub').textContent = best ? '定位誤差約 '+Math.ceil(best.coords.accuracy)+' 公尺，精度不足，未採用。請到戶外重試或輸入案場地址。' : '無法取得可信的位置，請改輸入案場地址。';
+      document.getElementById('loc-sub').textContent = best ? '定位誤差約 '+Math.ceil(best.coords.accuracy)+' 公尺，精度不足，未採用。可重試或直接開啟下方 Google 地圖。' : '無法取得可信的位置，可重試或直接開啟下方 Google 地圖。';
       if (locationSource) document.getElementById('loc-sub').textContent += ' 保留原選定位置。';
       document.getElementById('loc-refresh').textContent = '重試';
       updateGpsDot(); search(); return;
@@ -352,8 +353,8 @@ function getLocation() {
 }
 function locationFailure(err) {
   locating = false;
-  const hints = {1:'定位權限未允許，可改填案場地址。',2:'裝置目前無法取得位置，可改填案場地址。',3:'定位逾時，請重試或輸入案場地址。'};
-  document.getElementById('loc-sub').textContent = (hints[err.code] || '定位失敗，可輸入案場地址。') + (locationSource ? ' 保留原選定位置。' : '');
+  const hints = {1:'定位權限未允許，請在瀏覽器網站設定允許位置後重試。',2:'裝置暫時無法取得位置，請確認系統定位服務已開啟。',3:'定位逾時，請到訊號較好的地方重試。'};
+  document.getElementById('loc-sub').textContent = (hints[err.code] || '定位失敗，請確認定位服務與網站權限。') + (locationSource ? ' 保留原選定位置。' : ' 也可直接用下方 Google 地圖搜尋，不必填地址。');
   document.getElementById('loc-refresh').textContent = '重試';
   updateGpsDot(); search();
 }
@@ -373,10 +374,9 @@ function setManualLocation() {
 }
 function nearbyUrl(term = CATS[currentCat].label) {
   const location = hasCoords(currentLat,currentLng) ? currentLat + ',' + currentLng : manualPlace;
-  if (!location) return '';
   const url = new URL('https://www.google.com/maps/search/');
   url.searchParams.set('api','1');
-  url.searchParams.set('query', term + ' near ' + location);
+  url.searchParams.set('query', location ? term + ' near ' + location : '附近的' + term);
   return url.href;
 }
 function setCategory(cat,el) {
@@ -400,7 +400,7 @@ function distLabel(m) { return m === null ? '距離未知' : m >= 1000 ? (m/1000
 function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function search() {
   const link = document.getElementById('nearby-link'), url = nearbyUrl();
-  link.textContent = '在 Google 地圖搜尋' + CATS[currentCat].label;
+  link.textContent = (hasCoords(currentLat,currentLng) || manualPlace ? '在 Google 地圖搜尋' : '直接用 Google 地圖找附近') + CATS[currentCat].label;
   link.setAttribute('aria-disabled', url ? 'false' : 'true');
   if (url) link.setAttribute('href',url); else link.removeAttribute('href');
   const extra = document.getElementById('search-terms');
